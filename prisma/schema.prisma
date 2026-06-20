@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Contractor {
+  id          String                 @id @default(uuid())
+  name        String                 @unique
+  address     String?
+  evaluations ContractorEvaluation[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+}
+
+model Consultant {
+  id          String                 @id @default(uuid())
+  name        String                 @unique
+  address     String?
+  evaluations ConsultantEvaluation[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+}
+
+model ContractorEvaluation {
+  id                    String     @id @default(uuid())
+  contractorId          String
+  contractor            Contractor @relation(fields: [contractorId], references: [id])
+  
+  contractNumber        String
+  projectNumber         String
+  clientReferenceNumber String?
+  descriptionOfWork     String?
+  superintendent        String?
+  
+  // Project Manager Info
+  pmName                String?
+  pmTelephone           String?
+  pmFax                 String?
+  pmCell                String?
+  pmEmail               String?
+
+  // Contract Info
+  awardAmount           Float?
+  awardDate             DateTime?
+  finalAmount           Float?
+  completionDate        DateTime?
+  changeOrdersCount     Int?
+  finalCertificateDate  DateTime?
+
+  // Scores (Out of 20 typically)
+  qualityOfWorkmanship  Int?
+  time                  Int?
+  projectManagement     Int?
+  contractManagement    Int?
+  healthAndSafety       Int?
+  totalPoints           Int?
+
+  comments              String?
+  originalPdfUrl        String? // For file uploads
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model ConsultantEvaluation {
+  id                    String     @id @default(uuid())
+  consultantId          String
+  consultant            Consultant @relation(fields: [consultantId], references: [id])
+
+  contractNumber        String
+  projectNumber         String
+  clientReferenceNumber String?
+  descriptionOfWork     String?
+  
+  // Project Manager Info
+  pmName                String?
+  pmTelephone           String?
+  pmFax                 String?
+  pmCell                String?
+  pmEmail               String?
+
+  // Contract Info
+  awardAmount           Float?
+  awardDate             DateTime?
+  finalAmount           Float?
+  completionDate        DateTime?
+  amendmentsCount       Int?
+
+  // Scores (Out of 20 typically)
+  design                Int?
+  qualityOfResults      Int?
+  management            Int?
+  time                  Int?
+  cost                  Int?
+  totalPoints           Int? // Out of 100
+
+  comments              String?
+  originalPdfUrl        String? // For file uploads
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
