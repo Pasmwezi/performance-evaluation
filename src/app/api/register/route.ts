@@ -1,4 +1,3 @@
-
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { NextRequest } from "next/server";
@@ -12,9 +11,11 @@ export async function POST(req: NextRequest) {
       return new Response("Missing info", { status: 400 });
     }
 
+    const normalizedEmail = String(email).trim().toLowerCase();
+
     const exists = await prisma.user.findUnique({
       where: {
-        email: email,
+        email: normalizedEmail,
       },
     });
 
@@ -26,9 +27,18 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         name,
+        role: "CONTRACTING_OFFICER",
+        protectedBAccess: false,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        protectedBAccess: true,
       },
     });
 

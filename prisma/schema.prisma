@@ -6,11 +6,19 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  ADMIN
+  CONTRACTING_OFFICER
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
   name      String?
+  role      UserRole @default(CONTRACTING_OFFICER)
+  protectedBAccess Boolean @default(false)
+  accessJustification String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -112,3 +120,5 @@ model ConsultantEvaluation {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
+
+

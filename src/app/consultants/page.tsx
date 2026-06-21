@@ -1,12 +1,9 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { requireProtectedBSession } from "@/lib/protected-access";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export default async function ConsultantsPage() {
-  const session = await getServerSession(authOptions);
-  if (!session) { redirect("/login"); }
+  const session = await requireProtectedBSession();
 
   const consultants = await prisma.consultant.findMany({
     include: { evaluations: true },
@@ -83,6 +80,8 @@ export default async function ConsultantsPage() {
     </div>
   );
 }
+
+
 
 
 

@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
 import bcrypt from "bcrypt";
+import { hasAdminAccess, hasProtectedBAccess } from "@/lib/protected-policy";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -37,6 +38,8 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
+          protectedBAccess: hasProtectedBAccess(user.email, user.protectedBAccess, user.role),
         };
       }
     })
@@ -48,14 +51,25 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+        token.protectedBAccess = user.protectedBAccess;
+      }
+
+      token.adminAccess = hasAdminAccess(token.email, token.role);
+      token.protectedBAccess = hasProtectedBAccess(token.email, Boolean(token.protectedBAccess), token.role);
+      return token;
+    },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.name = token.name;
-        // @ts-ignore
         session.user.id = token.sub;
+        session.user.role = token.role;
+        session.user.protectedBAccess = Boolean(token.protectedBAccess);
+        session.user.adminAccess = Boolean(token.adminAccess);
       }
       return session;
     }
   }
 };
-

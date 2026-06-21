@@ -1,10 +1,10 @@
 # PerfEval
 
-PerfEval is a procurement performance tracker for recording, reviewing, and monitoring contractor and consultant evaluations. It provides authenticated users with a dashboard, evaluation entry forms, vendor profile pages, score history, uploaded form storage, and an underperforming watchlist.
+PerfEval is a procurement performance tracker for recording, reviewing, and monitoring contractor and consultant evaluations. It provides authorized Protected B users with a dashboard, evaluation entry forms, vendor profile pages, score history, uploaded form storage, and an underperforming watchlist.
 
 ## App Functionality
 
-- Authenticated access with user registration, login, and sign out.
+- Authenticated access with user registration, login, sign out, Admin-managed user groups, and Protected B authorization.
 - Procurement dashboard with counts for contractors, consultants, total evaluations, and flagged vendors.
 - Underperforming watchlist for contractors or consultants whose average evaluation score is below 60.
 - Contractor evaluation workflow with vendor selection or new contractor creation.
@@ -15,7 +15,7 @@ PerfEval is a procurement performance tracker for recording, reviewing, and moni
 - Vendor list pages showing average score, evaluation count, status, and score bar.
 - Vendor detail pages showing evaluation history and average standing.
 - Individual evaluation detail pages with contract details, project manager contact information, comments, scores, and downloadable uploaded forms.
-- Optional PDF/form upload for each evaluation, stored under `public/uploads`.
+- Optional PDF/form upload for each evaluation, stored outside `public` and served only through a Protected B authorized download route.
 
 ## Tech Stack
 
@@ -31,6 +31,7 @@ PerfEval is a procurement performance tracker for recording, reviewing, and moni
 - `/` - protected procurement dashboard
 - `/login` - sign in
 - `/register` - create user account
+- `/admin/users` - Admin-only user group and Protected B access management
 - `/contractors` - contractor performance list
 - `/contractors/[id]` - contractor profile and evaluation history
 - `/contractors/[id]/evaluations/[evaluationId]` - contractor evaluation detail
@@ -48,11 +49,14 @@ Create a `.env` file with values like:
 DATABASE_URL="postgresql://user:password@localhost:5433/performance_eval?schema=public"
 NEXTAUTH_SECRET="super-secret-key-for-dev-only"
 NEXTAUTH_URL="http://localhost:3001"
+PROTECTED_B_ADMIN_EMAILS="security.officer@example.com"
+PROTECTED_B_AUTHORIZED_EMAILS="project.manager@example.com"
+PROTECTED_UPLOAD_DIR="./protected-uploads"
 WEB_PORT=3001
 POSTGRES_PORT=5433
 ```
 
-For Docker Compose, the web container connects to PostgreSQL through the internal `db` service while the host machine can reach the database on `POSTGRES_PORT`.
+For Docker Compose, the web container connects to PostgreSQL through the internal `db` service while the host machine can reach the database on `POSTGRES_PORT`. `PROTECTED_B_ADMIN_EMAILS` bootstraps the first Admins. Admins can then manage users from `/admin/users`. `PROTECTED_B_AUTHORIZED_EMAILS` remains available as a temporary bootstrap allowlist for contracting officers, but normal access should be granted in the app.
 
 ## Run With Docker
 
@@ -116,7 +120,11 @@ npx prisma db seed
 
 ## Notes
 
+- User groups are `ADMIN` and `CONTRACTING_OFFICER`. Admins manage access; contracting officers fill and upload completed forms after Protected B access is granted.
 - Scores are stored out of 100 and averaged per vendor for list pages, detail pages, and dashboard flagging.
 - Vendors are flagged as underperforming when their average score is below 60.
-- Uploaded evaluation forms are persisted in the Docker `uploads` volume when using Compose.
+- Uploaded evaluation forms are persisted in the Docker `uploads` volume at `/app/protected-uploads` and are not served from `public`.
 - The Docker image uses Next.js standalone output and listens on container port `3000`, mapped to `WEB_PORT` on the host.
+
+
+

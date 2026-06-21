@@ -32,8 +32,8 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 
 # Set writable paths for Next cache and uploaded evaluation forms.
-RUN mkdir -p .next public/uploads
-RUN chown -R nextjs:nodejs .next public/uploads
+RUN mkdir -p .next protected-uploads
+RUN chown -R nextjs:nodejs .next protected-uploads
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
@@ -48,3 +48,4 @@ ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
 CMD ["node", "server.js"]
+

@@ -1,13 +1,11 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { requireProtectedBSession } from "@/lib/protected-access";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import { toProtectedFileUrl } from "@/lib/protected-files";
 
 export default async function ConsultantDetailPage({ params }: PageProps<"/consultants/[id]">) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session) { redirect("/login"); }
+  const session = await requireProtectedBSession();
 
   const consultant = await prisma.consultant.findUnique({
     where: { id },
@@ -26,7 +24,7 @@ export default async function ConsultantDetailPage({ params }: PageProps<"/consu
 
   return (
     <div className="space-y-6">
-      <Link href="/consultants" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-emerald-400 transition-colors">
+      <Link href="/consultants" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-teal-700 transition-colors">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
         Back to Consultants
       </Link>
@@ -87,7 +85,7 @@ export default async function ConsultantDetailPage({ params }: PageProps<"/consu
                     View evaluation
                   </Link>
                   {evaluation.originalPdfUrl && (
-                    <a href={evaluation.originalPdfUrl} download className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white/80 px-2.5 py-1.5 font-semibold text-slate-600 transition-colors hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700">
+                    <a href={toProtectedFileUrl(evaluation.originalPdfUrl)} download className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white/80 px-2.5 py-1.5 font-semibold text-slate-600 transition-colors hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700">
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 12l4.5 4.5m0 0l4.5-4.5M12 16.5V3" /></svg>
                       Download form
                     </a>
@@ -109,6 +107,10 @@ export default async function ConsultantDetailPage({ params }: PageProps<"/consu
     </div>
   );
 }
+
+
+
+
 
 
 

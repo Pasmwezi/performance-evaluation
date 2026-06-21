@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { protectedJson, requireProtectedBApi } from "@/lib/protected-access";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    const { response } = await requireProtectedBApi();
+    if (response) {
+      return response;
     }
 
     const body = await req.json();
     
-    // First, resolve the Consultant entity
     let consultant = await prisma.consultant.findUnique({
       where: { name: body.firmName }
     });
@@ -56,7 +54,7 @@ export async function POST(req: NextRequest) {
       data,
     });
 
-    return NextResponse.json(evaluation);
+    return protectedJson(evaluation);
   } catch (error) {
     console.error("Create consultant eval error:", error);
     return new NextResponse("Internal server error", { status: 500 });
@@ -65,9 +63,9 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    const { response } = await requireProtectedBApi();
+    if (response) {
+      return response;
     }
 
     const evaluations = await prisma.consultantEvaluation.findMany({
@@ -77,7 +75,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" }
     });
 
-    return NextResponse.json(evaluations);
+    return protectedJson(evaluations);
   } catch (error) {
     return new NextResponse("Internal server error", { status: 500 });
   }

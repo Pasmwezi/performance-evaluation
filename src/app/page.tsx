@@ -1,14 +1,9 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { requireProtectedBSession } from "@/lib/protected-access";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 export default async function Dashboard() {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    redirect("/login");
-  }
+  const session = await requireProtectedBSession();
 
   const [contractors, consultants] = await Promise.all([
     prisma.contractor.findMany({ include: { evaluations: true } }),
@@ -177,6 +172,8 @@ export default async function Dashboard() {
     </div>
   );
 }
+
+
 
 
 

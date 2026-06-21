@@ -3,6 +3,8 @@ import fs from "fs/promises";
 import path from "path";
 import { requireProtectedBApi } from "@/lib/protected-access";
 import { buildProtectedFileUrl, getProtectedUploadDir } from "@/lib/protected-files";
+import pdf from "pdf-parse";
+import { extractDataFromText } from "@/lib/pdf-extractor";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,6 +27,20 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    // Parse text from PDF
+    let text = "";
+    try {
+      const result = await pdf(buffer);
+      text = result.text || "";
+    } catch (parseError) {
+      console.error("PDF parse error:", parseError);
+      return new NextResponse("Failed to parse text from PDF form", { status: 400 });
+    }
+
+    // Extract fields
+    const extractedData = extractDataFromText(text);
+
+    // Save the PDF file to protected uploads directory
     const uploadDir = getProtectedUploadDir();
     await fs.mkdir(uploadDir, { recursive: true });
 
@@ -35,8 +51,12 @@ export async function POST(req: NextRequest) {
 
     await fs.writeFile(filepath, buffer, { flag: "wx" });
 
+    // Return the extracted data along with the file url
     return NextResponse.json(
-      { url: buildProtectedFileUrl(filename) },
+      {
+        data: extractedData,
+        originalPdfUrl: buildProtectedFileUrl(filename),
+      },
       {
         headers: {
           "Cache-Control": "no-store",
@@ -45,7 +65,7 @@ export async function POST(req: NextRequest) {
       }
     );
   } catch (error) {
-    console.error("Upload error:", error);
+    console.error("Extract API error:", error);
     return new NextResponse("Internal server error", { status: 500 });
   }
 }

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { protectedJson, requireProtectedBApi } from "@/lib/protected-access";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    const { response } = await requireProtectedBApi();
+    if (response) {
+      return response;
     }
 
     const contractors = await prisma.contractor.findMany({
@@ -17,7 +16,7 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    return NextResponse.json(contractors);
+    return protectedJson(contractors);
   } catch (error) {
     return new NextResponse("Internal server error", { status: 500 });
   }
