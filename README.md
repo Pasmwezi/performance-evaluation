@@ -1,6 +1,8 @@
-# PerfEval
+# Performance Evaluation App (PerfEval)
 
-PerfEval is a procurement performance tracker for recording, reviewing, and monitoring contractor and consultant evaluations. It provides authorized Protected B users with a dashboard, evaluation entry forms, vendor profile pages, score history, uploaded form storage, and an underperforming watchlist.
+[![CI Pipeline](https://github.com/Pasmwezi/performance-evaluation/actions/workflows/ci.yml/badge.svg)](https://github.com/Pasmwezi/performance-evaluation/actions)
+
+PerfEval is a secure procurement QA performance tracker for recording, reviewing, and monitoring contractor and consultant evaluations. It provides authorized Protected B users with a dashboard, evaluation entry forms, vendor profile pages, score history, uploaded form storage, and an underperforming watchlist.
 
 ## App Functionality
 
@@ -32,6 +34,8 @@ PerfEval is a procurement performance tracker for recording, reviewing, and moni
 - `/login` - sign in
 - `/register` - create user account
 - `/admin/users` - Admin-only user group and Protected B access management
+- `/admin/audit` - Admin-only security audit log tracker
+- `/reports` - procurement QA reports with charts and trend analytics
 - `/contractors` - contractor performance list
 - `/contractors/[id]` - contractor profile and evaluation history
 - `/contractors/[id]/evaluations/[evaluationId]` - contractor evaluation detail
@@ -118,13 +122,24 @@ The project includes a Prisma seed script with sample contractor and consultant 
 npx prisma db seed
 ```
 
-## Notes
+## System Architecture & Components
 
-- User groups are `ADMIN` and `CONTRACTING_OFFICER`. Admins manage access; contracting officers fill and upload completed forms after Protected B access is granted.
-- Scores are stored out of 100 and averaged per vendor for list pages, detail pages, and dashboard flagging.
-- Vendors are flagged as underperforming when their average score is below 60.
-- Uploaded evaluation forms are persisted in the Docker `uploads` volume at `/app/protected-uploads` and are not served from `public`.
-- The Docker image uses Next.js standalone output and listens on container port `3000`, mapped to `WEB_PORT` on the host.
+```mermaid
+graph TD
+    Client[Web Browser] -->|HTTPS| Proxy[proxy.ts - Routing Security & HSTS]
+    Proxy -->|API/Page Requests| Web[Next.js App Server]
+    Web -->|Database Queries| DB[(PostgreSQL Database)]
+    Web -->|File Storage| Storage[Protected Storage - protected-uploads/]
+```
 
+## User Roles & Permissions
 
+- `ADMIN`: full administration access. Can manage user roles, reset user passwords, and view immutable security audit logs.
+- `CONTRACTING_OFFICER`: standard user role. Can view contractor/consultant listings, submit new evaluations, and download/upload forms once granted Protected B access.
+- `EVALUATOR`: entry role. Can fill out and save new contractor/consultant evaluations, but cannot modify administrative user scopes.
 
+## Notes & QA Constraints
+
+- **Low Score Justification**: If any score for any category is rated 7/20 or less, the system dynamically requires a narrative justification explaining the reasons for the low score before the evaluation can be saved.
+- **Score Scaling**: If a specific category does not apply (e.g. Design is N/A for a project), checking the N/A checkbox automatically scales the final score out of the remaining applicable categories.
+- **Protected File Storage**: Uploaded PDF evaluation forms are saved securely inside `protected-uploads/` (not accessible publicly) and served via an authenticated streaming endpoint that forces attachment downloads and path traversal protection.

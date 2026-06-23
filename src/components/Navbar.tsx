@@ -31,10 +31,18 @@ export default function Navbar() {
               <Link href="/consultants" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white/70 hover:text-teal-700">
                 Consultants
               </Link>
+              <Link href="/reports" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white/70 hover:text-teal-700">
+                Reports
+              </Link>
               {session?.user?.adminAccess && (
-                <Link href="/admin/users" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white/70 hover:text-teal-700">
-                  Admin
-                </Link>
+                <>
+                  <Link href="/admin/users" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white/70 hover:text-teal-700">
+                    Admin Users
+                  </Link>
+                  <Link href="/admin/audit" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white/70 hover:text-teal-700">
+                    Audit Logs
+                  </Link>
+                </>
               )}
             </div>
           </div>
@@ -81,8 +89,12 @@ export default function Navbar() {
         <div className="border-t border-slate-200/70 bg-white/70 px-4 py-3 shadow-sm md:hidden">
           <Link href="/contractors" className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-teal-700" onClick={() => setMobileOpen(false)}>Contractors</Link>
           <Link href="/consultants" className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-teal-700" onClick={() => setMobileOpen(false)}>Consultants</Link>
+          <Link href="/reports" className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-teal-700" onClick={() => setMobileOpen(false)}>Reports</Link>
           {session?.user?.adminAccess && (
-            <Link href="/admin/users" className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-teal-700" onClick={() => setMobileOpen(false)}>Admin</Link>
+            <>
+              <Link href="/admin/users" className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-teal-700" onClick={() => setMobileOpen(false)}>Admin Users</Link>
+              <Link href="/admin/audit" className="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-teal-700" onClick={() => setMobileOpen(false)}>Audit Logs</Link>
+            </>
           )}
           {session && (
             <button onClick={() => signOut({ callbackUrl: "/login" })} className="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-500 hover:bg-rose-50 hover:text-rose-600">

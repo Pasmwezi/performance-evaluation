@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { hasAdminAccess, hasProtectedBAccess } from "@/lib/protected-policy";
+import { hasAdminAccess, hasProtectedBAccess, hasEvaluatorAccess } from "@/lib/protected-policy";
 
 export async function requireProtectedBSession() {
   const session = await getServerSession(authOptions);
@@ -28,6 +28,20 @@ export async function requireAdminSession() {
   }
 
   if (!hasAdminAccess(session.user.email, session.user.role)) {
+    redirect("/access-denied");
+  }
+
+  return session;
+}
+
+export async function requireEvaluatorSession() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    redirect("/login");
+  }
+
+  if (!hasEvaluatorAccess(session.user.role)) {
     redirect("/access-denied");
   }
 

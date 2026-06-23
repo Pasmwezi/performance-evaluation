@@ -2,10 +2,24 @@ import { requireProtectedBSession } from "@/lib/protected-access";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
-export default async function ConsultantsPage() {
-  const session = await requireProtectedBSession();
+interface ConsultantsPageProps {
+  searchParams: Promise<{
+    q?: string;
+  }>;
+}
+
+export default async function ConsultantsPage({ searchParams }: ConsultantsPageProps) {
+  await requireProtectedBSession();
+  const { q } = await searchParams;
+
+  const where = q
+    ? {
+        name: { contains: q, mode: "insensitive" as const },
+      }
+    : {};
 
   const consultants = await prisma.consultant.findMany({
+    where,
     include: { evaluations: true },
     orderBy: { name: "asc" }
   });
@@ -30,6 +44,33 @@ export default async function ConsultantsPage() {
           New Evaluation
         </Link>
       </div>
+
+      {/* Search Filter */}
+      <form method="GET" className="app-card p-4">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              name="q"
+              defaultValue={q || ""}
+              placeholder="Search by consultant name..."
+              className="block w-full rounded-lg border border-slate-200 bg-white/80 px-10 py-2.5 text-sm text-slate-950 placeholder:text-slate-500 focus:border-teal-600 focus:outline-none"
+            />
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <svg className="h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+          </div>
+          <button type="submit" className="btn-primary h-11 py-0">Search</button>
+          {q && (
+            <Link
+              href="/consultants"
+              className="flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              Clear
+            </Link>
+          )}
+        </div>
+      </form>
 
       <div className="space-y-3">
         {enrichedConsultants.map((consultant) => (
@@ -73,15 +114,10 @@ export default async function ConsultantsPage() {
         ))}
         {enrichedConsultants.length === 0 && (
           <div className="app-card p-8 text-center">
-            <p className="text-slate-500">No consultants found. Create one by submitting an evaluation.</p>
+            <p className="text-slate-500">No consultants found matching search criteria.</p>
           </div>
         )}
       </div>
     </div>
   );
 }
-
-
-
-
-

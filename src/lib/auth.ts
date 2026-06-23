@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
 import bcrypt from "bcrypt";
 import { hasAdminAccess, hasProtectedBAccess } from "@/lib/protected-policy";
+import { logAuditEvent } from "./audit-logger";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -22,6 +23,12 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
+          await logAuditEvent({
+            userId: "anonymous",
+            userEmail: credentials.email,
+            action: "LOGIN_FAILED",
+            details: { reason: "User not found" }
+          });
           return null;
         }
 
@@ -31,8 +38,21 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordValid) {
+          await logAuditEvent({
+            userId: user.id,
+            userEmail: user.email,
+            action: "LOGIN_FAILED",
+            details: { reason: "Incorrect password" }
+          });
           return null;
         }
+
+        await logAuditEvent({
+          userId: user.id,
+          userEmail: user.email,
+          action: "LOGIN",
+          details: { email: user.email }
+        });
 
         return {
           id: user.id,
@@ -45,8 +65,13 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
+    maxAge: 8 * 60 * 60, // 8 hours
   },
+  jwt: {
+    maxAge: 8 * 60 * 60, // 8 hours
+  },
+  useSecureCookies: process.env.NODE_ENV === "production",
   pages: {
     signIn: "/login",
   },

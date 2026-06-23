@@ -39,3 +39,7 @@ export function hasProtectedBAccess(email?: string | null, dbAccess = false, rol
 export function hasAdminAccess(email?: string | null, role?: string | null) {
   return role === "ADMIN" || isBootstrapAdmin(email);
 }
+
+export function hasEvaluatorAccess(role?: string | null) {
+  return role === "ADMIN" || role === "CONTRACTING_OFFICER" || role === "EVALUATOR";
+}

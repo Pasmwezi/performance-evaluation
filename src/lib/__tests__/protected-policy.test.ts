@@ -4,6 +4,7 @@ import {
   isBootstrapAdmin,
   hasProtectedBAccess,
   hasAdminAccess,
+  hasEvaluatorAccess,
 } from "../protected-policy";
 
 describe("protected-policy", () => {
@@ -73,6 +74,20 @@ describe("protected-policy", () => {
       process.env.PROTECTED_B_ADMIN_EMAILS = "admin@example.com";
       expect(hasAdminAccess("admin@example.com", "USER")).toBe(true);
       expect(hasAdminAccess("other@example.com", "USER")).toBe(false);
+    });
+  });
+
+  describe("hasEvaluatorAccess", () => {
+    it("should return true for ADMIN, CONTRACTING_OFFICER, and EVALUATOR roles", () => {
+      expect(hasEvaluatorAccess("ADMIN")).toBe(true);
+      expect(hasEvaluatorAccess("CONTRACTING_OFFICER")).toBe(true);
+      expect(hasEvaluatorAccess("EVALUATOR")).toBe(true);
+    });
+
+    it("should return false for other roles or null", () => {
+      expect(hasEvaluatorAccess("USER")).toBe(false);
+      expect(hasEvaluatorAccess(null)).toBe(false);
+      expect(hasEvaluatorAccess(undefined)).toBe(false);
     });
   });
 });

@@ -1,5 +1,5 @@
 {
-  "name": "temp_app",
+  "name": "performance-evaluation",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:unit": "vitest run --exclude **/api.test.ts --exclude **/db.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"

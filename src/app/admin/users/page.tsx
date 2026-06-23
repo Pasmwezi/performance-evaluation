@@ -1,6 +1,6 @@
 import { requireAdminSession } from "@/lib/protected-access";
 import { prisma } from "@/lib/prisma";
-import { updateUserAccess } from "./actions";
+import { updateUserAccess, resetUserPassword } from "./actions";
 
 function formatDate(date: Date) {
   return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
@@ -36,38 +36,65 @@ export default async function AdminUsersPage() {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {users.map((user) => (
-          <form key={user.id} action={updateUserAccess} className="app-card p-4">
-            <input type="hidden" name="userId" value={user.id} />
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_220px_180px_minmax(220px,1fr)_auto] lg:items-end">
-              <div>
-                <p className="font-semibold text-slate-950">{user.name || "Unnamed user"}</p>
-                <p className="text-sm text-slate-500">{user.email}</p>
-                <p className="mt-1 text-xs text-slate-400">Created {formatDate(user.createdAt)} / Updated {formatDate(user.updatedAt)}</p>
+          <div key={user.id} className="app-card p-4 space-y-4">
+            <form action={updateUserAccess}>
+              <input type="hidden" name="userId" value={user.id} />
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_220px_180px_minmax(220px,1fr)_auto] lg:items-end">
+                <div>
+                  <p className="font-semibold text-slate-950">{user.name || "Unnamed user"}</p>
+                  <p className="text-sm text-slate-500">{user.email}</p>
+                  <p className="mt-1 text-xs text-slate-400">Created {formatDate(user.createdAt)} / Updated {formatDate(user.updatedAt)}</p>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Group</label>
+                  <select name="role" defaultValue={user.role} className="block w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2.5 text-sm text-slate-950 focus:border-teal-600 focus:outline-none">
+                    <option value="EVALUATOR">Evaluator</option>
+                    <option value="CONTRACTING_OFFICER">Contracting officer</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
+
+                <label className="flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white/80 px-3 text-sm font-semibold text-slate-700">
+                  <input name="protectedBAccess" type="checkbox" defaultChecked={user.protectedBAccess || user.role === "ADMIN"} className="h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600" />
+                  Protected B access
+                </label>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Need-to-know note</label>
+                  <input name="accessJustification" defaultValue={user.accessJustification || ""} placeholder="Contract, team, or approval reference" className="block w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2.5 text-sm text-slate-950 placeholder:text-slate-400 focus:border-teal-600 focus:outline-none" />
+                </div>
+
+                <button type="submit" className="btn-primary h-11">Save Access</button>
               </div>
+            </form>
 
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Group</label>
-                <select name="role" defaultValue={user.role} className="block w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2.5 text-sm text-slate-950 focus:border-teal-600 focus:outline-none">
-                  <option value="CONTRACTING_OFFICER">Contracting officer</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-              </div>
-
-              <label className="flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white/80 px-3 text-sm font-semibold text-slate-700">
-                <input name="protectedBAccess" type="checkbox" defaultChecked={user.protectedBAccess || user.role === "ADMIN"} className="h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600" />
-                Protected B access
-              </label>
-
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Need-to-know note</label>
-                <input name="accessJustification" defaultValue={user.accessJustification || ""} placeholder="Contract, team, or approval reference" className="block w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2.5 text-sm text-slate-950 placeholder:text-slate-400 focus:border-teal-600 focus:outline-none" />
-              </div>
-
-              <button type="submit" className="btn-primary h-11">Save</button>
+            <div className="border-t border-slate-100 pt-3">
+              <details className="text-sm">
+                <summary className="cursor-pointer text-xs font-semibold text-slate-500 hover:text-teal-700 select-none">
+                  Reset User Password
+                </summary>
+                <form action={resetUserPassword} className="mt-3 flex max-w-md items-end gap-3">
+                  <input type="hidden" name="userId" value={user.id} />
+                  <div className="flex-1">
+                    <label className="mb-1 block text-xs font-medium text-slate-600">New Password</label>
+                    <input
+                      name="newPassword"
+                      type="password"
+                      placeholder="Min 8 chars, letter + number"
+                      required
+                      className="block w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2.5 text-sm text-slate-950 focus:border-teal-600 focus:outline-none"
+                    />
+                  </div>
+                  <button type="submit" className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 transition-colors">
+                    Reset Password
+                  </button>
+                </form>
+              </details>
             </div>
-          </form>
+          </div>
         ))}
       </div>
     </div>

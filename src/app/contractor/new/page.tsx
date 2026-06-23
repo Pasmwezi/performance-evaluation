@@ -53,6 +53,7 @@ export default function NewContractorEvaluation() {
     healthAndSafety: "",
     totalPoints: "",
     comments: "",
+    lowScoreJustification: "",
   });
 
   useEffect(() => {
@@ -204,6 +205,7 @@ export default function NewContractorEvaluation() {
         healthAndSafety: ext.healthAndSafety || "",
         totalPoints: ext.totalPoints || "",
         comments: ext.comments || "",
+        lowScoreJustification: "",
       });
 
       setExtractedPdfUrl(result.originalPdfUrl);
@@ -219,6 +221,17 @@ export default function NewContractorEvaluation() {
     } finally {
       setIsExtracting(false);
     }
+  };
+
+  const isAnyScoreLow = () => {
+    const scores = [
+      parseInt(formData.qualityOfWorkmanship),
+      parseInt(formData.time),
+      projectManagementNa ? NaN : parseInt(formData.projectManagement),
+      contractManagementNa ? NaN : parseInt(formData.contractManagement),
+      parseInt(formData.healthAndSafety),
+    ];
+    return scores.some((s) => !isNaN(s) && s !== null && s <= 7);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -243,7 +256,8 @@ export default function NewContractorEvaluation() {
       projectManagement: projectManagementNa ? null : formData.projectManagement,
       contractManagement: contractManagementNa ? null : formData.contractManagement,
       totalPoints: scaled.toString(),
-      originalPdfUrl
+      originalPdfUrl,
+      lowScoreJustification: isAnyScoreLow() ? formData.lowScoreJustification : "",
     };
 
     const res = await fetch("/api/contractor", {
@@ -477,6 +491,28 @@ export default function NewContractorEvaluation() {
             </div>
           </div>
         </div>
+
+        {/* Low Score Justification */}
+        {isAnyScoreLow() && (
+          <div className="app-card p-6 border-amber-200 bg-amber-50/30">
+            <h3 className="text-base font-semibold text-amber-900 flex items-center gap-2 mb-2">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              Low Score Justification Required
+            </h3>
+            <p className="text-xs text-amber-800/80 mb-3">
+              One or more categories have been scored 7/20 or less. Procurement QA guidelines require a detailed narrative justification.
+            </p>
+            <textarea
+              required
+              name="lowScoreJustification"
+              value={formData.lowScoreJustification}
+              onChange={handleChange}
+              placeholder="Explain the reasons for the low score(s) and any actions taken."
+              rows={3}
+              className="block w-full rounded-lg bg-white border border-amber-200 px-3 py-2.5 text-slate-950 text-sm placeholder:text-slate-400 focus:outline-none focus:border-amber-600 transition-colors"
+            />
+          </div>
+        )}
 
         {/* Comments & Upload */}
         <div className="app-card p-6">

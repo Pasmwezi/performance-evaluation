@@ -9,6 +9,7 @@ datasource db {
 enum UserRole {
   ADMIN
   CONTRACTING_OFFICER
+  EVALUATOR
 }
 
 model User {
@@ -77,6 +78,9 @@ model ContractorEvaluation {
 
   comments              String?
   originalPdfUrl        String? // For file uploads
+  
+  createdById           String?
+  lowScoreJustification String?
 
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
@@ -117,8 +121,37 @@ model ConsultantEvaluation {
   comments              String?
   originalPdfUrl        String? // For file uploads
 
+  createdById           String?
+  lowScoreJustification String?
+
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }
 
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  userEmail  String
+  action     String   // LOGIN, CREATE_EVALUATION, UPDATE_USER_ACCESS, etc.
+  entityType String?  // "ContractorEvaluation", "ConsultantEvaluation", "User"
+  entityId   String?
+  details    Json?    // Before/after snapshots, changed fields
+  ipAddress  String?
+  createdAt  DateTime @default(now())
 
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model ScoringRubric {
+  id          String   @id @default(uuid())
+  version     String   @unique  // e.g. "2024-Q1"
+  description String?
+  maxScore    Int      @default(20)
+  categories  Json     // Array of {name, maxPoints, description}
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
