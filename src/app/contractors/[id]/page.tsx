@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { toProtectedFileUrl } from "@/lib/protected-files";
 
-export default async function ContractorDetailPage({ params }: PageProps<"/contractors/[id]">) {
+export default async function ContractorDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await requireProtectedBSession();
 
